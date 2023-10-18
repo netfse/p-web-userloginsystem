@@ -3,6 +3,14 @@ const userMasterModel = require('../../model/user/userMaster.model')
 
 const bcrypt = require('bcrypt');
 
+const validateEmail = (email) => {
+    return String(email)
+        .toLowerCase()
+        .match(
+            /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+        );
+};
+
 module.exports.registerUser = async (req, res) => {
     let params = { user, pwd } = req.body;
 
@@ -11,7 +19,15 @@ module.exports.registerUser = async (req, res) => {
             requestHandler.throwError(
                 global.http.status.unauthorized,
                 'Register error',
-                'Username or password is invalid.'
+                'Useremail or password is invalid.'
+            )
+        }
+
+        if (!validateEmail(user)) {
+            requestHandler.throwError(
+                global.http.status.unauthorized,
+                'Register error',
+                'Useremail is invalid.'
             )
         }
 
