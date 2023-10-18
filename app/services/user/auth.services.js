@@ -46,7 +46,7 @@ module.exports.authUser = async (req, res) => {
 
             params.currentUser = currentUser;
 
-            await userMasterModel.RefreshUserToken(params);
+            await userMasterModel.refreshUserToken(params);
 
             res.cookie('jwt',
                 refreshToken,
@@ -55,7 +55,6 @@ module.exports.authUser = async (req, res) => {
                     secure: true, maxAge: 24 * 60 * 60 * 1000
                 }
             );
-
             return { accessToken: accessToken }
 
         }

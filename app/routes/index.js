@@ -10,5 +10,6 @@ router.use('/health', (req, res) => {
 })
 
 router.use('/user', require('./user'))
+router.use('/userdata', require('./userdata'))
 
 module.exports = router

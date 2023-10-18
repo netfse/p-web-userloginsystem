@@ -7,24 +7,20 @@ const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
 module.exports.refreshUser = async (req, res) => {
-
-    console.log("===========")
-    console.log(req.cookies)
-    console.log("===========")
-
-    let params = { cookies } = req.cookies;
+    let params = {
+        refreshToken: req.cookies.jwt,
+    }
 
     try {
-
-        if (!params.cookies?.jwt) {
+        if (!params.refreshToken) {
             requestHandler.throwError(
                 global.http.status.unauthorized,
                 'Refresh error',
-                'Token is invlid.'
+                'Refresh token is invlid'
             )
         }
 
-        const refreshToken = params.cookies.jwt;
+        const refreshToken = params.refreshToken;
 
         const foundUser = await userMasterModel.findUserRefreshToken(params);
 
@@ -36,17 +32,25 @@ module.exports.refreshUser = async (req, res) => {
             )
         }
 
+        let accessToken = "";
+
         jwt.verify(
             refreshToken,
             process.env.REFRESH_TOKEN_SECRET,
             (err, decoded) => {
-                if (err || foundUser.useremail !== decoded.useremail) return res.sendStatus(403);
-                const accessToken = jwt.sign(
+                if (err || foundUser.useremail !== decoded.useremail) {
+                    requestHandler.throwError(
+                        global.http.status.unauthorized,
+                        'Refresh error',
+                        'Useremail is invaild'
+                    )
+                }
+
+                accessToken = jwt.sign(
                     { "useremail": decoded.useremail },
                     process.env.ACCESS_TOKEN_SECRET,
                     { expiresIn: '30s' }
                 );
-                res.json({ accessToken })
             }
         );
 

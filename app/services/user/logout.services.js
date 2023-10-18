@@ -2,19 +2,18 @@ const requestHandler = require('../../utils/requestHandler')
 const userMasterModel = require('../../model/user/userMaster.model')
 
 module.exports.logoutUser = async (req, res) => {
-    let params = { cookies } = req.cookies;
+    let params = {
+        refreshToken: req.cookies.jwt,
+    }
 
     try {
-
-        if (!params.cookies?.jwt) {
+        if (!params.refreshToken) {
             requestHandler.throwError(
                 global.http.status.unauthorized,
                 'Refresh error',
-                'Token is invlid.'
+                'Refresh token is invlid.'
             )
         }
-
-        const refreshToken = params.cookies.jwt;
 
         const foundUser = await userMasterModel.findUserRefreshToken(params);
 
@@ -27,19 +26,15 @@ module.exports.logoutUser = async (req, res) => {
             )
         }
 
-        const deleteUserRefreshToken = await userMasterModel.deleteUserRefreshToken(params);
-
-        const otherUsers = usersDB.users.filter(person => person.refreshToken !== foundUser.refreshToken);
         const currentUser = { ...foundUser, refreshToken: '' };
-        usersDB.setUsers([...otherUsers, currentUser]);
-        await fsPromises.writeFile(
-            path.join(__dirname, '..', 'model', 'users.json'),
-            JSON.stringify(usersDB.users)
-        );
+
+        params.currentUser = currentUser;
+
+        await userMasterModel.deleteUserRefreshToken(params);
 
         res.clearCookie('jwt', { httpOnly: true, sameSite: 'None', secure: true });
 
-        return { 'success': `The user logout!` }
+        return { 'success': `The user[${foundUser.useremail}] is logged out!` }
 
     } catch (err) {
         throw err
